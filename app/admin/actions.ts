@@ -54,11 +54,14 @@ export async function submitArticle(formData: FormData) {
   const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now();
   const link = `/article/${slug}`; // Internal link
 
+  // Strip HTML for snippet
+  const plainText = content.replace(/<[^>]*>?/gm, '');
+
   await prisma.article.create({
     data: {
       title,
       content,
-      snippet: content.substring(0, 200),
+      snippet: plainText.substring(0, 200),
       link, // Since link is unique, we generate one.
       author: author || 'Admin',
       publishedAt: new Date(),
@@ -73,4 +76,10 @@ export async function submitArticle(formData: FormData) {
   revalidatePath('/');
   revalidatePath('/admin');
   redirect('/');
+}
+
+export async function deleteAllArticles() {
+  await prisma.article.deleteMany({});
+  revalidatePath('/');
+  revalidatePath('/admin');
 }

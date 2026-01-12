@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db';
-import { toggleFeed, triggerUpdate, submitArticle } from './actions';
+import { toggleFeed, triggerUpdate, submitArticle, deleteAllArticles } from './actions';
 import { logout } from '@/app/login/actions';
 import ArticleForm from '@/components/ArticleForm';
 
@@ -59,6 +59,16 @@ export default async function AdminPage() {
                 </li>
               ))}
             </ul>
+          </div>
+
+          <div className="mt-8 border-t border-red-200 pt-6">
+             <h3 className="text-xl font-serif font-bold text-red-700 mb-4">Danger Zone</h3>
+             <form action={deleteAllArticles}>
+               <button className="w-full bg-red-600 text-white px-4 py-3 font-sans font-bold uppercase hover:bg-red-700 transition rounded">
+                 Delete All Articles
+               </button>
+               <p className="text-xs text-gray-500 mt-2 text-center">This will remove all articles from the database. Feeds will be preserved.</p>
+             </form>
           </div>
         </div>
 

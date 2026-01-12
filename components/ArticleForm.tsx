@@ -10,45 +10,51 @@ export default function ArticleForm({ action }: { action: (formData: FormData) =
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Check file size (e.g., limit to 2MB to avoid huge DB)
+    if (file.size > 2 * 1024 * 1024) {
+        alert('Image is too large. Please use an image smaller than 2MB.');
+        return;
+    }
+
     setIsUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
 
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            const imageUrl = reader.result as string;
 
-      if (!res.ok) throw new Error('Upload failed');
-
-      const data = await res.json();
-      const imageUrl = data.url;
-
-      // Insert into textarea
-      if (contentRef.current) {
-        const textarea = contentRef.current;
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const text = textarea.value;
-        const before = text.substring(0, start);
-        const after = text.substring(end);
-        
-        // Insert HTML image tag
-        const insertion = `\n<img src="${imageUrl}" alt="Inserted Image" class="w-full h-auto my-4" />\n`;
-        
-        textarea.value = before + insertion + after;
-        
-        // Reset cursor
-        const newPos = start + insertion.length;
-        textarea.setSelectionRange(newPos, newPos);
-        textarea.focus();
-      }
+            // Insert into textarea
+            if (contentRef.current) {
+                const textarea = contentRef.current;
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const text = textarea.value;
+                const before = text.substring(0, start);
+                const after = text.substring(end);
+                
+                // Insert HTML image tag
+                const insertion = `\n<img src="${imageUrl}" alt="Inserted Image" class="w-full h-auto my-4" />\n`;
+                
+                textarea.value = before + insertion + after;
+                
+                // Reset cursor
+                const newPos = start + insertion.length;
+                textarea.setSelectionRange(newPos, newPos);
+                textarea.focus();
+            }
+            setIsUploading(false);
+        };
+        reader.onerror = (error) => {
+            console.error('Error converting file to base64:', error);
+            alert('Failed to process image');
+            setIsUploading(false);
+        };
     } catch (error) {
       console.error(error);
       alert('Failed to upload image');
-    } finally {
       setIsUploading(false);
+    } finally {
       // Clear input
       e.target.value = '';
     }
@@ -112,8 +118,8 @@ export default function ArticleForm({ action }: { action: (formData: FormData) =
             ref={contentRef}
             name="content" 
             required 
-            rows={15} 
-            className="w-full border border-gray-300 p-2 font-serif focus:border-black outline-none" 
+            rows={25} 
+            className="w-full border border-gray-300 p-2 font-serif focus:border-black outline-none min-h-[600px]" 
             placeholder="Write your article here... Use the '+ Insert Image' button to add images into the text." 
         />
       </div>

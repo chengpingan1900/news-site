@@ -20,7 +20,21 @@ async function getArticles() {
 }
 
 export default async function Home() {
-  const articles = await getArticles();
+  const allArticles = await getArticles();
+
+  // Reorder logic: Move manual articles to the bottom
+  const manualArticles = allArticles.filter(a => a.isManual);
+  const rssArticles = allArticles.filter(a => !a.isManual);
+  
+  // Shuffle manual articles to satisfy "random" requirement if there are multiple
+  // (Fisher-Yates shuffle for small array)
+  for (let i = manualArticles.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [manualArticles[i], manualArticles[j]] = [manualArticles[j], manualArticles[i]];
+  }
+
+  // Combine: RSS first, then Manual at the very bottom
+  const articles = [...rssArticles, ...manualArticles];
 
   if (articles.length === 0) {
     return (
