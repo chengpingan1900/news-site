@@ -1,4 +1,6 @@
-const { prisma } = require('../lib/db');
+const { PrismaClient } = require('@prisma/client');
+
+const prisma = new PrismaClient();
 
 async function main() {
   const feeds = [
