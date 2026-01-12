@@ -24,36 +24,25 @@ export default function NewsImage({ src, alt, className, fallbackText = 'News', 
   }, [src]);
 
   const getPlaceholder = () => {
-     // Use keyword if available for dynamic text
-     let text = keyword || category || fallbackText;
-     if (text.length > 15) text = text.substring(0, 15); // limit length
+     // Generate Unsplash Source URL based on category or keyword
+     // Using source.unsplash.com is deprecated/unreliable, so we use images.unsplash.com with specific IDs or keywords
+     // Or a reliable placeholder service that supports images
      
-     // Use category to determine color or style
-     let bg = 'e2e8f0'; // gray-200
-     let fg = '1e293b'; // slate-800
+     const term = keyword || category || 'news';
      
-     if (category) {
-       switch(category.toLowerCase()) {
-         case 'tech':
-           bg = 'e0f2fe'; // sky-100
-           fg = '0369a1'; // sky-700
-           break;
-         case 'business':
-           bg = 'dcfce7'; // green-100
-           fg = '15803d'; // green-700
-           break;
-         case 'world':
-           bg = 'fee2e2'; // red-100
-           fg = 'b91c1c'; // red-700
-           break;
-         case 'opinion':
-           bg = 'fef9c3'; // yellow-100
-           fg = 'a16207'; // yellow-700
-           break;
-       }
-     }
+     // We can use a deterministic random image based on the title hash to keep it consistent
+     // but for now let's just use a high quality placeholder service that supports categories
+     // Lorem Picsum or similar
      
-     return `https://placehold.co/600x400/${bg}/${fg}?text=${encodeURIComponent(text.toUpperCase())}`;
+     // Using Unsplash direct search URL format (often works)
+     // https://source.unsplash.com/featured/?{term}
+     // Note: Unsplash Source is being sunset, so we might want to use a static set or another service.
+     
+     // Let's use a stable, high-quality placeholder service: "Picsum Photos" with a seed
+     // Seed ensures the same article always gets the same random image
+     const seed = alt.replace(/[^a-z0-9]/gi, '').substring(0, 10);
+     
+     return `https://picsum.photos/seed/${seed}/800/600`;
   };
 
   const handleError = () => {
