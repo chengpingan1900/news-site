@@ -85,8 +85,47 @@ export default function ArticleForm({ action }: { action: (formData: FormData) =
       </div>
 
       <div>
-        <label className="block font-sans text-xs font-bold uppercase text-gray-500 mb-1">Cover Image URL (Optional)</label>
-        <input name="imageUrl" className="w-full border border-gray-300 p-2 font-sans text-sm focus:border-black outline-none" placeholder="https://..." />
+        <label className="block font-sans text-xs font-bold uppercase text-gray-500 mb-1">Cover Image (Optional)</label>
+        {/* Hidden file input for cover image */}
+        <input 
+          type="file" 
+          id="cover-image-upload" 
+          className="hidden" 
+          accept="image/*"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            
+            if (file.size > 2 * 1024 * 1024) {
+              alert('Image is too large. Please use an image smaller than 2MB.');
+              return;
+            }
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => {
+              const base64 = reader.result as string;
+              // Find the text input and set its value
+              const urlInput = document.getElementById('cover-image-url-input') as HTMLInputElement;
+              if (urlInput) urlInput.value = base64;
+            };
+          }}
+        />
+        
+        <div className="flex gap-2">
+            <input 
+                id="cover-image-url-input"
+                name="imageUrl" 
+                className="flex-1 border border-gray-300 p-2 font-sans text-sm focus:border-black outline-none" 
+                placeholder="https://... or upload local image ->" 
+            />
+            <label 
+                htmlFor="cover-image-upload" 
+                className="bg-gray-200 hover:bg-gray-300 px-4 py-2 text-xs font-bold uppercase cursor-pointer flex items-center"
+            >
+                Upload
+            </label>
+        </div>
       </div>
 
       <div>

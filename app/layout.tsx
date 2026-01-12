@@ -16,8 +16,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "The Daily News",
-  description: "Your daily source of news, curated automatically.",
+  title: "Global News Events",
+  description: "Your daily source of global news, curated from Washington D.C.",
 };
 
 export default function RootLayout({
@@ -41,8 +41,8 @@ export default function RootLayout({
           </div>
           <div className="container mx-auto px-4 py-8 text-center">
             <Link href="/" className="inline-block">
-              <h1 className="text-6xl md:text-8xl font-serif font-black tracking-tight leading-none">
-                THE DAILY NEWS
+              <h1 className="text-5xl md:text-7xl font-serif font-black tracking-tight leading-none">
+                GLOBAL NEWS EVENTS
               </h1>
             </Link>
           </div>
@@ -53,6 +53,7 @@ export default function RootLayout({
               <li><Link href="/category/business" className="hover:text-gray-600">Business</Link></li>
               <li><Link href="/category/tech" className="hover:text-gray-600">Tech</Link></li>
               <li><Link href="/category/opinion" className="hover:text-gray-600">Opinion</Link></li>
+              <li><Link href="/about" className="hover:text-gray-600 text-red-700">About Us</Link></li>
             </ul>
           </nav>
         </header>
