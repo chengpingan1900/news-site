@@ -88,8 +88,49 @@ export async function submitArticle(formData: FormData) {
   redirect('/');
 }
 
-export async function deleteAllArticles() {
-  await prisma.article.deleteMany({});
+export async function deleteArticle(id: string) {
+  await prisma.article.delete({
+    where: { id }
+  });
   revalidatePath('/');
   revalidatePath('/admin');
+}
+
+export async function updateArticle(id: string, formData: FormData) {
+  try {
+    const title = formData.get('title') as string;
+    const content = formData.get('content') as string;
+    const author = formData.get('author') as string;
+    const imageUrl = formData.get('imageUrl') as string;
+    const category = formData.get('category') as string || 'general';
+    const keyword = formData.get('keyword') as string;
+    
+    if (!title || !content) {
+      throw new Error('Title and content are required');
+    }
+
+    // Strip HTML for snippet
+    const plainText = content.replace(/<[^>]*>?/gm, '');
+
+    await prisma.article.update({
+      where: { id },
+      data: {
+        title,
+        content,
+        snippet: plainText.substring(0, 200),
+        author: author || 'Admin',
+        imageUrl: imageUrl || null,
+        keyword: keyword || null,
+        // We could update category/feed too if needed, but keeping it simple for now
+      }
+    });
+    
+    revalidatePath('/');
+    revalidatePath('/admin');
+  } catch (error) {
+    console.error('Failed to update article:', error);
+    throw new Error('Failed to update article.');
+  }
+  
+  redirect('/admin'); // Redirect back to admin to clear edit state
 }

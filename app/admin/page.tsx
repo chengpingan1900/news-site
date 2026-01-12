@@ -1,17 +1,25 @@
 import { prisma } from '@/lib/db';
-import { toggleFeed, triggerUpdate, submitArticle, deleteAllArticles } from './actions';
+import { toggleFeed, triggerUpdate, submitArticle, deleteAllArticles, updateArticle, deleteArticle } from './actions';
 import { logout } from '@/app/login/actions';
 import ArticleForm from '@/components/ArticleForm';
+import ArticleList from '@/components/ArticleList';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminPage() {
   let feeds: Awaited<ReturnType<typeof prisma.feed.findMany>> = [];
+  let recentArticles: Awaited<ReturnType<typeof prisma.article.findMany>> = [];
 
   try {
     feeds = await prisma.feed.findMany();
+    recentArticles = await prisma.article.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+        where: { isManual: true } // Only show manual articles for editing to simplify
+    });
   } catch {
     feeds = [];
+    recentArticles = [];
   }
 
   return (
@@ -73,8 +81,13 @@ export default async function AdminPage() {
         </div>
 
         <div>
-          <h2 className="text-2xl font-serif font-bold mb-6">Submit Article</h2>
-          <ArticleForm action={submitArticle} />
+          <h2 className="text-2xl font-serif font-bold mb-6">Manage Articles</h2>
+          <ArticleForm submitAction={submitArticle} updateAction={updateArticle} />
+          
+          <div className="mt-12">
+            <h3 className="text-xl font-serif font-bold mb-4">Recent Manual Articles</h3>
+            <ArticleList articles={recentArticles} deleteAction={deleteArticle} />
+          </div>
         </div>
       </div>
     </div>

@@ -4,14 +4,20 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
-  // 1. Geo-blocking Logic
-  // Check common headers used by hosting providers (Vercel, Cloudflare, etc.) to identify country
-  const country = request.geo?.country || 
-                  request.headers.get('x-vercel-ip-country') || 
-                  request.headers.get('cf-ipcountry');
+  // 1. Geo-blocking Logic for China
+  // We check standard headers from Render/Cloudflare/Vercel
+  const country = request.headers.get('x-render-ip-country') || 
+                  request.headers.get('cf-ipcountry') || 
+                  request.headers.get('x-vercel-ip-country');
 
   if (country === 'CN') {
-    return new NextResponse('Access Denied', { status: 403 });
+    // To simulate a "Connection Timed Out" or "Network Error", 
+    // we can return a 444 No Response (Nginx style) or simply a 403.
+    // Since we can't truly drop the TCP connection in Node middleware, 
+    // we return a 403 Forbidden which will look like a block.
+    // Or, we could try to return a never-ending promise to simulate timeout (but Render might kill it).
+    // Let's stick to a hard 403 for now, which is standard for geo-blocking.
+    return new NextResponse(null, { status: 403, statusText: 'Forbidden' });
   }
 
   // 2. Protect /admin routes

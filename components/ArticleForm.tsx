@@ -1,10 +1,44 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
+import { Article } from '@prisma/client';
 
-export default function ArticleForm({ action }: { action: (formData: FormData) => void }) {
+export default function ArticleForm({ submitAction, updateAction }: { submitAction: (formData: FormData) => void, updateAction?: (id: string, formData: FormData) => void }) {
   const contentRef = useRef<HTMLTextAreaElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [editingArticle, setEditingArticle] = useState<Article | null>(null);
+
+  useEffect(() => {
+    const handleEdit = (e: any) => {
+      setEditingArticle(e.detail);
+      // Fill form values (simple way for uncontrolled inputs)
+      if (formRef.current) {
+        const form = formRef.current;
+        const article = e.detail as Article;
+        (form.elements.namedItem('title') as HTMLInputElement).value = article.title;
+        (form.elements.namedItem('category') as HTMLSelectElement).value = article.feed?.category || 'general'; // This might be tricky if feed not included
+        (form.elements.namedItem('author') as HTMLInputElement).value = article.author || '';
+        (form.elements.namedItem('imageUrl') as HTMLInputElement).value = article.imageUrl || '';
+        (form.elements.namedItem('keyword') as HTMLInputElement).value = article.keyword || '';
+        (form.elements.namedItem('content') as HTMLTextAreaElement).value = article.content || '';
+      }
+    };
+
+    window.addEventListener('edit-article', handleEdit);
+    return () => window.removeEventListener('edit-article', handleEdit);
+  }, []);
+
+  const handleSubmit = async (formData: FormData) => {
+      if (editingArticle && updateAction) {
+          await updateAction(editingArticle.id, formData);
+          setEditingArticle(null); // Reset after update
+          formRef.current?.reset();
+      } else {
+          await submitAction(formData);
+          formRef.current?.reset();
+      }
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -61,7 +95,22 @@ export default function ArticleForm({ action }: { action: (formData: FormData) =
   };
 
   return (
-    <form action={action} className="space-y-4 bg-gray-50 p-6 border border-gray-200">
+    <form ref={formRef} action={handleSubmit} className="space-y-4 bg-gray-50 p-6 border border-gray-200">
+      <div className="flex justify-between items-center mb-4">
+         <h3 className="font-bold text-lg">{editingArticle ? `Editing: ${editingArticle.title}` : 'New Article'}</h3>
+         {editingArticle && (
+             <button 
+                type="button" 
+                onClick={() => {
+                    setEditingArticle(null);
+                    formRef.current?.reset();
+                }}
+                className="text-xs text-red-600 hover:underline"
+            >
+                Cancel Edit
+            </button>
+         )}
+      </div>
       <div>
         <label className="block font-sans text-xs font-bold uppercase text-gray-500 mb-1">Title</label>
         <input name="title" required className="w-full border border-gray-300 p-2 font-serif focus:border-black outline-none" placeholder="Enter headline..." />
@@ -163,7 +212,7 @@ export default function ArticleForm({ action }: { action: (formData: FormData) =
         />
       </div>
       <button className="w-full bg-black text-white px-4 py-3 font-sans text-sm font-bold uppercase hover:bg-gray-800 transition">
-        Publish Article
+        {editingArticle ? 'Update Article' : 'Publish Article'}
       </button>
     </form>
   );
